@@ -1,13 +1,13 @@
 from antlr4 import *
 from DSLParser import DSLParser
 from DSLVisitor import DSLVisitor
-from Contexto import Contexto, MemoriaDataframes, GestorModelos
-from RedesNeuronales import RedesNeuronales
-from Agrupamiento import Agrupamiento
-from Graficos import Graficos
-from ManejoArchivos import ManejoArchivos
-from Matrices import Matrices
-from Aritmetica import Aritmetica
+from librerias.Contexto import Contexto, MemoriaDataframes, GestorModelos
+from librerias.RedesNeuronales import RedesNeuronales
+from librerias.Agrupamiento import Agrupamiento
+from librerias.Graficos import Graficos
+from librerias.ManejoArchivos import ManejoArchivos
+from librerias.Matrices import Matrices
+from librerias.Aritmetica import Aritmetica
 
 class ReturnException(Exception):
     def __init__(self, value):
