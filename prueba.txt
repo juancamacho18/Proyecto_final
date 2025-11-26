@@ -1,0 +1,17 @@
+#prueba 5
+print("=== PRUEBA 5: KMeans + DBSCAN + Modelos ===");
+
+var datos = [[1,1],[1,2],[9,9],[10,10],[10,11],[-1,-1]];
+
+km = kmeans(data=datos, k=2);
+print(km);
+
+db = dbscan(data=datos, eps=1.0, min_pts=2);
+print(db);
+
+save_model(km, "km_model.json");
+
+km2 = load_model("km_model.json");
+print(km2);
+
+print("FIN PRUEBA 5");
