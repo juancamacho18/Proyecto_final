@@ -11,13 +11,13 @@ from librerias.Aritmetica import Aritmetica
 
 class ReturnException(Exception):
     def __init__(self, value):
-        self.value = value
+        self.value=value
 
 class Visitor(DSLVisitor):
     def __init__(self):
-        self.contexto = Contexto()
-        self.dataframes = MemoriaDataframes()
-        self.modelos = GestorModelos()
+        self.contexto=Contexto()
+        self.dataframes=MemoriaDataframes()
+        self.modelos=GestorModelos()
         
     def visitPrograma(self, ctx:DSLParser.ProgramaContext):
         return self.visitChildren(ctx)
@@ -36,49 +36,48 @@ class Visitor(DSLVisitor):
     # --- Declaración y Asignación ---
 
     def visitDeclaracion(self, ctx:DSLParser.DeclaracionContext):
-        nombre = ctx.ID().getText()
-        valor = self.visit(ctx.expresion())
+        nombre=ctx.ID().getText()
+        valor=self.visit(ctx.expresion())
         
-        if ctx.getChild(0).getText() == 'global':
+        if ctx.getChild(0).getText()=='global':
             self.contexto.definir_global(nombre, valor)
         else:
             self.contexto.definir_variable(nombre, valor)
         return valor
 
     def visitAsignacion(self, ctx:DSLParser.AsignacionContext):
-        nombre = ctx.ID().getText()
-        valor = self.visit(ctx.expresion(0)) # El valor a asignar siempre es la primera expresión en la regla (o la última, depende de la gramática, let's check)
-        # Wait, let's check the grammar for asignacion
+        nombre=ctx.ID().getText()
+        valor=self.visit(ctx.expresion(0)) 
         # asignacion : ID '=' expresion ';'
         #            | ID '[' expresion ']' '=' expresion ';'
         #            | ID '[' expresion ']' '[' expresion ']' '=' expresion ';'
         
-        if ctx.getChildCount() == 4: # ID '=' expresion ';'
-            valor = self.visit(ctx.expresion(0))
+        if ctx.getChildCount()==4: # ID '=' expresion ';'
+            valor=self.visit(ctx.expresion(0))
             self.contexto.actualizar_variable(nombre, valor)
             
-        elif ctx.getChildCount() == 7: # ID '[' expresion ']' '=' expresion ';'
-            indice = self.visit(ctx.expresion(0))
-            valor = self.visit(ctx.expresion(1))
-            lista = self.contexto.obtener_variable(nombre)
+        elif ctx.getChildCount()==7: # ID '[' expresion ']' '=' expresion ';'
+            indice=self.visit(ctx.expresion(0))
+            valor=self.visit(ctx.expresion(1))
+            lista=self.contexto.obtener_variable(nombre)
             if isinstance(lista, list):
-                if 0 <= indice < len(lista):
-                    lista[indice] = valor
+                if 0<= indice <len(lista):
+                    lista[indice]=valor
                 else:
-                    print(f"Error: Índice {indice} fuera de rango para lista '{nombre}'")
+                    print(f"Error: Indice {indice} fuera de rango para lista '{nombre}'")
             else:
                 print(f"Error: Variable '{nombre}' no es una lista")
                 
-        elif ctx.getChildCount() == 10: # ID '[' expresion ']' '[' expresion ']' '=' expresion ';'
-            fila = self.visit(ctx.expresion(0))
-            col = self.visit(ctx.expresion(1))
-            valor = self.visit(ctx.expresion(2))
-            matriz = self.contexto.obtener_variable(nombre)
+        elif ctx.getChildCount()==10: # ID '[' expresion ']' '[' expresion ']' '=' expresion ';'
+            fila=self.visit(ctx.expresion(0))
+            col=self.visit(ctx.expresion(1))
+            valor=self.visit(ctx.expresion(2))
+            matriz=self.contexto.obtener_variable(nombre)
             if isinstance(matriz, list) and isinstance(matriz[0], list):
-                if 0 <= fila < len(matriz) and 0 <= col < len(matriz[0]):
-                    matriz[fila][col] = valor
+                if 0<= fila <len(matriz) and 0<= col <len(matriz[0]):
+                    matriz[fila][col]=valor
                 else:
-                    print(f"Error: Índices [{fila}][{col}] fuera de rango para matriz '{nombre}'")
+                    print(f"Error: Indices [{fila}][{col}] fuera de rango para matriz '{nombre}'")
             else:
                 print(f"Error: Variable '{nombre}' no es una matriz")
         
@@ -88,53 +87,50 @@ class Visitor(DSLVisitor):
 
     def visitCondicional(self, ctx:DSLParser.CondicionalContext):
         # 'if' '(' expresion ')' bloque ('elif' '(' expresion ')' bloque)* ('else' bloque)?
-        condicion = self.visit(ctx.expresion(0))
+        condicion=self.visit(ctx.expresion(0))
         if condicion:
             self.visit(ctx.bloque(0))
             return
 
-        # Check elifs
-        # The grammar structure for elif is a bit complex in the list of children.
-        # Let's iterate through children to find elifs
-        i = 1
-        expr_idx = 1
-        bloque_idx = 1
+        i=1
+        expr_idx=1
+        bloque_idx=1
         
-        while i < ctx.getChildCount():
-            child = ctx.getChild(i)
-            if child.getText() == 'elif':
-                cond_elif = self.visit(ctx.expresion(expr_idx))
-                expr_idx += 1
+        while i<ctx.getChildCount():
+            child=ctx.getChild(i)
+            if child.getText()=='elif':
+                cond_elif=self.visit(ctx.expresion(expr_idx))
+                expr_idx+=1
                 if cond_elif:
                     self.visit(ctx.bloque(bloque_idx))
                     return
-                bloque_idx += 1
-            elif child.getText() == 'else':
+                bloque_idx+=1
+            elif child.getText()=='else':
                 self.visit(ctx.bloque(bloque_idx))
                 return
-            i += 1
+            i+=1
 
     def visitCicloFor(self, ctx:DSLParser.CicloForContext):
         # 'for' ID 'in' 'range' '(' expresion (',' expresion (',' expresion)?)? ')' bloque
         # 'for' ID 'in' expresion bloque
-        nombre_var = ctx.ID().getText()
+        nombre_var=ctx.ID().getText()
         
-        if ctx.getChild(3).getText() == 'range':
-            start = 0
-            step = 1
-            if len(ctx.expresion()) == 1:
-                stop = self.visit(ctx.expresion(0))
-            elif len(ctx.expresion()) == 2:
-                start = self.visit(ctx.expresion(0))
-                stop = self.visit(ctx.expresion(1))
+        if ctx.getChild(3).getText()=='range':
+            start=0
+            step=1
+            if len(ctx.expresion())==1:
+                stop=self.visit(ctx.expresion(0))
+            elif len(ctx.expresion())==2:
+                start=self.visit(ctx.expresion(0))
+                stop=self.visit(ctx.expresion(1))
             else:
-                start = self.visit(ctx.expresion(0))
-                stop = self.visit(ctx.expresion(1))
-                step = self.visit(ctx.expresion(2))
+                start=self.visit(ctx.expresion(0))
+                stop=self.visit(ctx.expresion(1))
+                step=self.visit(ctx.expresion(2))
             
-            iterable = range(int(start), int(stop), int(step))
+            iterable=range(int(start), int(stop), int(step))
         else:
-            iterable = self.visit(ctx.expresion(0))
+            iterable=self.visit(ctx.expresion(0))
             
         self.contexto.entrar_scope('ciclo')
         try:
@@ -146,7 +142,6 @@ class Visitor(DSLVisitor):
                 try:
                     self.visit(ctx.bloque())
                 except Exception as e:
-                    # Aquí podríamos manejar break/continue si el DSL lo soportara
                     raise e
         finally:
             self.contexto.salir_scope()
@@ -345,18 +340,6 @@ class Visitor(DSLVisitor):
         y = self.visit(ctx.expresion(1))
         lr = 0.1
         epochs = 100
-        
-        # Buscar argumentos opcionales
-        # La gramática es un poco laxa, así que asumiremos orden o buscaremos por nombre si fuera posible,
-        # pero el parser ya valida la estructura.
-        # (',' 'lr=' expresion)? (',' 'epochs=' expresion)?
-        
-        # Necesitamos saber qué expresiones corresponden a qué.
-        # ctx.expresion() devuelve una lista.
-        # 0: X, 1: y
-        # Si hay 3, puede ser lr o epochs? No, la gramática tiene tokens literales 'lr='
-        
-        # Vamos a iterar sobre los hijos para encontrar los valores correctos
         idx_expr = 2
         for i in range(ctx.getChildCount()):
             child = ctx.getChild(i)
@@ -425,9 +408,6 @@ class Visitor(DSLVisitor):
         modelo = self.contexto.obtener_variable(nombre_modelo)
         X = self.visit(ctx.expresion(0))
         
-        # Determinar tipo de modelo para saber qué función usar
-        # Podríamos guardar el tipo en el modelo o inferirlo
-        # GestorModelos guarda el tipo
         try:
             info = self.modelos.obtener_info_modelo(nombre_modelo)
             tipo = info['tipo']
@@ -502,9 +482,7 @@ class Visitor(DSLVisitor):
         k = self.visit(ctx.expresion(1))
         max_iter = 100
         
-        if ctx.getChildCount() > 8: # Hay max_iter
-             # Buscar donde está max_iter
-             # Similar logic to perceptron
+        if ctx.getChildCount() > 8: 
              pass # Simplification: assume standard order or just use default for now if complex
              
         # Parsing manual de argumentos opcionales
@@ -594,21 +572,14 @@ class Visitor(DSLVisitor):
                 
         data = ManejoArchivos.leer_csv(ruta, delimiter, header)
         
-        # Convertir a formato numérico si es posible para facilitar ML
-        # Esto es una mejora automática
         if data:
             datos_num = []
             for fila in data['datos']:
                 fila_num = ManejoArchivos.convertir_columna_a_numeros(fila)
                 datos_num.append(fila_num)
             
-            # Guardamos tanto la estructura raw como una versión numérica simplificada si se pide
-            # Por ahora guardamos la estructura completa o solo los datos?
-            # El DSL parece esperar listas de listas para ML.
-            # Vamos a devolver la lista de listas numérica por defecto para facilitar uso
             self.contexto.definir_variable(nombre_var, datos_num)
             
-            # También podríamos guardar el objeto completo en otra variable o en metadatos
             self.dataframes.crear_dataframe(nombre_var, datos_num, data['encabezados'])
             
         return data
@@ -633,9 +604,6 @@ class Visitor(DSLVisitor):
         return None
 
     def visitGuardarModelo(self, ctx:DSLParser.GuardarModeloContext):
-        # No implementado persistencia real en GestorModelos (solo memoria), 
-        # pero podríamos usar pickle si quisiéramos.
-        # Por ahora solo imprime confirmación.
         print(f"Modelo guardado (simulado): {ctx.STRING().getText()}")
         return None
 
@@ -720,9 +688,6 @@ class Visitor(DSLVisitor):
             
         # Necesitamos un wrapper para llamar a la función del DSL desde Python
         def func_wrapper(x):
-            # Llamar a la función definida en el DSL
-            # Esto es tricky porque necesitamos el contexto.
-            # Podemos usar visitFuncionLlamada simulado o invocar directamente.
             
             if not self.contexto.existe_funcion(func_name):
                 return 0
