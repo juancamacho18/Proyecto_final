@@ -103,4 +103,49 @@ class Aritmetica(object):
         if cos<0:
             raise ValueError("tangente indefinida")
         return sin/cos
-            
+    
+    #calcular cotangente
+    @staticmethod
+    def cotangente(x, modo='rad', n=10):
+        if modo=='deg':
+            x=Aritmetica._grados_a_radianes(x)
+        elif modo!='rad':
+            raise ValueError("Modo no valido")
+        
+        sin=Aritmetica.seno(x)
+        cos=Aritmetica.coseno(x)
+
+        if sin==0:
+            raise ValueError("cotangente indefinida")
+        
+        return cos/sin
+
+    # calcular secante
+    @staticmethod
+    def secante(x, modo='rad', n=10):
+        if modo=='deg':
+            x=Aritmetica._grados_a_radianes(x)
+        elif modo!='rad':
+            raise ValueError("Modo no válido")
+        
+        cos=Aritmetica.coseno(x, modo='rad', n=n)
+
+        if cos==0:
+            raise ValueError("secante indefinida")
+    
+        return 1/cos
+
+    # calcular cosecante
+    @staticmethod
+    def cosecante(x, modo='rad', n=10):
+        if modo=='deg':
+            x=Aritmetica._grados_a_radianes(x)
+        elif modo!='rad':
+            raise ValueError("Modo no válido")
+        
+        sin=Aritmetica.seno(x, modo='rad', n=n)
+
+        if sin==0:
+            raise ValueError("cosecante indefinida")
+        
+        return 1/sin
